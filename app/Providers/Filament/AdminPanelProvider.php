@@ -7,6 +7,8 @@ use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Pages;
+use Filament\Navigation\NavigationGroup;
+use Filament\Navigation\NavigationItem;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -30,7 +32,27 @@ class AdminPanelProvider extends PanelProvider
             ->brandName('My Site')
             ->brandLogo(asset('logo.svg'))
             ->brandLogoHeight('50px')
+            ->profile()
             // ->registration()
+            ->navigationGroups([
+                NavigationGroup::make()
+                ->label('Blog')
+                ->collapsed(),
+                NavigationGroup::make()
+                ->label('Links')
+                ->collapsed()
+            ])
+            ->navigationItems([
+                NavigationItem::make('Google')
+                ->url('https://google.com', shouldOpenInNewTab: true)
+                ->icon('heroicon-o-bookmark')
+                ->group('Links'),
+                NavigationItem::make('Youtube')
+                ->url('https://youtube.com', shouldOpenInNewTab: true)
+                ->icon('heroicon-o-bookmark')
+                ->group('Links')
+            ])
+           
             ->colors([
                 'primary' => Color::Amber,
             ])

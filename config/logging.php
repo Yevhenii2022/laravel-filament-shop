@@ -52,6 +52,11 @@ return [
 
     'channels' => [
 
+        'safe' => [
+            'driver' => 'custom',
+            'via' => \App\Logging\SafeLoggerFactory::class,
+        ],
+
         'stack' => [
             'driver' => 'stack',
             'channels' => explode(',', (string) env('LOG_STACK', 'single')),
