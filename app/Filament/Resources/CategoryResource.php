@@ -9,11 +9,15 @@ use Filament\Forms;
 use Filament\Forms\Components\Builder;
 use Filament\Forms\Components\Builder\Block;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Group;
 use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\RichEditor;
+use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Section;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -36,101 +40,46 @@ class CategoryResource extends Resource
     {
         return $form
             ->schema([
-                TextInput::make('title')
-                ->default('New Category')     
-                ->helperText(new HtmlString('Enter the name of the <strong>category</strong>'))
-                ->hint('Hint for title')
-                ->hintIcon('heroicon-m-language', 'Tooltip for title')
-                ->hintColor('info')
-                ->disabledOn('edit')
-                ->hiddenOn('edit')
-                ->autofocus()    
-                ->columnSpan(2)
-                ->label('Category Name')
-                ->required()
-                ->maxLength(255),             
-                TextInput::make('slug'),   
-                FileUpload::make('image')
-                    // ->disk('public_uploads')
-                    ->directory("preview/" . date('Y') . '/' . date('m') . '/' . date('d'))
-                    ->imageEditor()
-                    ->reorderable()
-                    ->acceptedFileTypes(['image/png', 'image/jpeg'])
-                    ->imageEditorAspectRatios([
-                        null,
-                        '16:9',
-                        '4:3',
-                        '1:1',
-                    ])
-                    ->multiple()
-                    ->columnSpan(2),
-                Forms\Components\Select::make('status')->options([
-                    1 => 'Draft', 'Published', 'Reviewing'
-                ]),    
-                RichEditor::make('content')->columnSpan(2), 
-                
-                Repeater::make('users')
-                    ->schema([
-                        TextInput::make('name')->required()->live(true),
-                        Select::make('role')
-                            ->options([
-                                'user' => 'User',
-                                'manager' => 'Manager',
-                                'admin' => 'Admin',
-                            ])
-                            ->required(),
-                    ])
-                    ->addActionLabel('Add user')
-                    ->cloneable()
-                    ->collapsible()
-                    ->itemLabel(fn (array $state): ?string => $state['name'] ?? null)
-//                    ->defaultItems(3)
-                    ->columns(2)->columnSpan(2),
 
-                KeyValue::make('meta')->columnSpan(2),
+        Group::make()->schema([
+                        Section::make('Main')->description('Main info about user.')->icon('heroicon-o-user')->schema([
+                        TextInput::make('first_name'),
+                        TextInput::make('middle_name'),
+                        TextInput::make('last_name'),
+                        TextInput::make('email')->email(),
+                        TextInput::make('password')->password()->revealable()->columnSpan('full'),  
+                        ])->columns(2)->collapsible(),
 
-                Forms\Components\Builder::make('page_content')
-                    ->blocks([
-                        Block::make('heading')
-                            ->schema([
-                                TextInput::make('content')
-                                    ->label('Heading')
-                                    ->required(),
-                                Select::make('level')
-                                    ->options([
-                                        'h1' => 'Heading 1',
-                                        'h2' => 'Heading 2',
-                                        'h3' => 'Heading 3',
-                                        'h4' => 'Heading 4',
-                                        'h5' => 'Heading 5',
-                                        'h6' => 'Heading 6',
-                                    ])
-                                    ->required(),
-                            ])
-                            ->columns(2),
-                        Block::make('paragraph')
-                            ->schema([
-                                Forms\Components\Textarea::make('content')
-                                    ->label('Paragraph')
-                                    ->required(),
-                            ]),
-                        Block::make('image')
-                            ->schema([
-                                Forms\Components\FileUpload::make('url')
-                                    ->label('Image')
-                                    ->image()
-                                    ->required(),
-                                TextInput::make('alt')
-                                    ->label('Alt text')
-                                    ->required(),
-                            ]),
-                    ])->columnSpan(2),
+                        Section::make('Address')->description('Address information.')->icon('heroicon-o-home')->schema([
+                            Select::make('country')->options(['Country 1', 'Country 2', 'Country 3']),
+                            Select::make('city')->options(['City 1', 'City 2', 'City 3']),
+                            Select::make('street')->options(['Street 1', 'Street 2', 'Street 3']),
+                            TextInput::make('zip'),
+                            TextInput::make('phone')->tel()->mask('+99 999 999-99-99'), 
+                        ])->columns(2)->collapsible(),
+        ])->columnSpan(2),
 
-                TextInput::make('email')->email(),   
-                TextInput::make('password')->password()->revealable(),
-                TextInput::make('phone')->tel()->placeholder('xxx xxx-xx-xx')->mask('999 999-99-99'),
-                TextInput::make('domain')->prefix('https://')->suffix('.com')->suffixIcon('heroicon-m-globe-alt'),        
-            ])->columns(2);
+        Group::make()->schema([
+                        Section::make('Additional Info')->description('Additional information.')->icon('heroicon-o-user')->schema([
+                        Select::make('dob')->options(
+                            array_combine(
+                                range(date('Y'), 1900),
+                                range(date('Y'), 1900),
+                            )
+                        ),
+                        Radio::make('gender')->options(['Male', 'Female'])->inline()->inlineLabel(false),
+                        ])->columns(2)->collapsible(),
+
+                        Section::make('Avatar')->description('Avatar information.')->icon('heroicon-o-user')->schema([
+                        FileUpload::make('avatar')->image()->avatar(),
+                        ])->collapsible(),
+
+                        Section::make('Notes')->description('Additional notes.')->icon('heroicon-o-document-text')->schema([
+                        Textarea::make('notes')->rows(5)
+                        ])->collapsible()->collapsed(),
+        ]),                        
+
+        ])->columns(3);
     }
 
     public static function table(Table $table): Table

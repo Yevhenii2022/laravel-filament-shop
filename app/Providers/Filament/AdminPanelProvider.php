@@ -52,7 +52,7 @@ class AdminPanelProvider extends PanelProvider
                 ->icon('heroicon-o-bookmark')
                 ->group('Links')
             ])
-           
+            ->sidebarCollapsibleOnDesktop()
             ->colors([
                 'primary' => Color::Amber,
             ])
