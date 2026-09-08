@@ -25,6 +25,7 @@ use Filament\Tables\Table;
 // use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\HtmlString;
+use Illuminate\Support\Str;
 
 class CategoryResource extends Resource
 {
@@ -41,124 +42,48 @@ class CategoryResource extends Resource
         return $form
             ->schema([
 
+                    Forms\Components\Group::make()->schema([
+                    Forms\Components\Section::make()->schema([
 
-                Forms\Components\Wizard::make([
+                        TextInput::make('title')
+                            ->required()
+                            ->minLength(5)
+                            ->live(true)
+                            ->afterStateUpdated(function (Forms\Set $set, ?string $state, string $operation) {
+                                if ($operation === 'edit') {
+                                    return;
+                                }
+                                $set('slug', Str::slug($state));
+                            }),
 
-                    Forms\Components\Wizard\Step::make('Основное')->icon('heroicon-o-user')->schema([
-                        TextInput::make('first_name')->required(),
-                        TextInput::make('middle_name'),
-                        TextInput::make('last_name'),
-                        TextInput::make('email')->email(),
-                        TextInput::make('password')->password()->revealable()->columnSpan('full'),
-                    ])->columns(2),
+                        TextInput::make('slug')
+                            /*->hidden(function (Forms\Get $get) {
+                                return !$get('title');
+                            })*/
+//                            ->hidden(fn (Forms\Get $get): bool => !$get('title'))
+                            ->disabledOn('edit')
+                            ->required()
+                            ->unique()
+                            ->helperText('Generates automatically from the title if left empty'),
 
-                    Forms\Components\Wizard\Step::make('Контакты')->icon('heroicon-o-map')->schema([
-                        Select::make('country')->options(['Country 1', 'Country 2', 'Country 3']),
-                        Select::make('city')->options(['City 1', 'City 2', 'City 3']),
-                        Select::make('street')->options(['Street 1', 'Street 2', 'Street 3']),
-                        TextInput::make('zip')->required(),
-                        TextInput::make('phone')->tel()->mask('+99 999 999-99-99'),
-                    ])->columns(2),
+                        Forms\Components\RichEditor::make('content')->columnSpan(2)->required()
 
-                    Forms\Components\Wizard\Step::make('Дополнительно')->icon('heroicon-o-user')->schema([
-                        Select::make('dob')->options(
-                            array_combine(
-                                range(date('Y'), 1900),
-                                range(date('Y'), 1900),
-                            )
-                        ),
-                        Radio::make('gender')->options(['Male', 'Female']),
-                    ])->columns(2),
-
-                    Forms\Components\Wizard\Step::make('Аватар и примечение')->icon('heroicon-o-user')->schema([
-                        FileUpload::make('avatar')->image(),
-                        Forms\Components\Textarea::make('notes')->rows(5)
-                    ])->columns(2),
-
+                    ])->columns(2)
                 ])->columnSpan(2),
 
+                    Forms\Components\Group::make()->schema([
 
+                    Forms\Components\Section::make()->schema([
 
-        Group::make()->schema([
-                        Section::make('Main')->description('Main info about user.')->icon('heroicon-o-user')->schema([
-                        TextInput::make('first_name'),
-                        TextInput::make('middle_name'),
-                        TextInput::make('last_name'),
-                        TextInput::make('email')->email(),
-                        TextInput::make('password')->password()->revealable()->columnSpan('full'),  
-                        ])->columns(2)->collapsible(),
+                        FileUpload::make('image')
+                            ->image()
+                            ->directory("preview/" . date('Y') . '/' . date('m') . '/' . date('d')),
 
-                        Section::make('Address')->description('Address information.')->icon('heroicon-o-home')->schema([
-                            Select::make('country')->options(['Country 1', 'Country 2', 'Country 3']),
-                            Select::make('city')->options(['City 1', 'City 2', 'City 3']),
-                            Select::make('street')->options(['Street 1', 'Street 2', 'Street 3']),
-                            TextInput::make('zip'),
-                            TextInput::make('phone')->tel()->mask('+99 999 999-99-99'), 
-                        ])->columns(2)->collapsible(),
-        ])->columnSpan(2),
+                    ])
 
-        Group::make()->schema([
-                        Section::make('Additional Info')->description('Additional information.')->icon('heroicon-o-user')->schema([
-                        Select::make('dob')->options(
-                            array_combine(
-                                range(date('Y'), 1900),
-                                range(date('Y'), 1900),
-                            )
-                        ),
-                        Radio::make('gender')->options(['Male', 'Female'])->inline()->inlineLabel(false),
-                        ])->columns(2)->collapsible(),
+                ]),
 
-                        Section::make('Avatar')->description('Avatar information.')->icon('heroicon-o-user')->schema([
-                        FileUpload::make('avatar')->image()->avatar(),
-                        ])->collapsible(),
-
-                        Section::make('Notes')->description('Additional notes.')->icon('heroicon-o-document-text')->schema([
-                        Textarea::make('notes')->rows(5)
-                        ])->collapsible()->collapsed(),
-        ]),        
-        
-        
-
-
-Forms\Components\Tabs::make()->tabs([
-
-                    Forms\Components\Tabs\Tab::make('Основное')->icon('heroicon-o-user')->schema([
-                        TextInput::make('first_name'),
-                        TextInput::make('middle_name'),
-                        TextInput::make('last_name'),
-                        TextInput::make('email')->email(),
-                        TextInput::make('password')->password()->revealable()->columnSpan('full'),
-                    ])->columns(2),
-
-                    Forms\Components\Tabs\Tab::make('Контакты')->icon('heroicon-o-map')->schema([
-                        Select::make('country')->options(['Country 1', 'Country 2', 'Country 3']),
-                        Select::make('city')->options(['City 1', 'City 2', 'City 3']),
-                        Select::make('street')->options(['Street 1', 'Street 2', 'Street 3']),
-                        TextInput::make('zip'),
-                        TextInput::make('phone')->tel()->mask('+99 999 999-99-99'),
-                    ])->columns(2),
-
-                    Forms\Components\Tabs\Tab::make('Дополнительно')->icon('heroicon-o-user')->schema([
-                        Select::make('dob')->options(
-                            array_combine(
-                                range(date('Y'), 1900),
-                                range(date('Y'), 1900),
-                            )
-                        ),
-                        Radio::make('gender')->options(['Male', 'Female']),
-                    ])->columns(2),
-
-                    Forms\Components\Tabs\Tab::make('Аватар и примечение')->icon('heroicon-o-user')->schema([
-                        FileUpload::make('avatar')->image(),
-                        Forms\Components\Textarea::make('notes')->rows(5)
-                    ])->columns(2),
-
-                ])->columnSpan(2)
-
-
-
-
-        ])->columns(1);
+        ])->columns(3);
     }
 
     public static function table(Table $table): Table
