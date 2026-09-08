@@ -22,6 +22,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Support\Enums\Alignment;
 // use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\HtmlString;
@@ -63,7 +64,7 @@ class CategoryResource extends Resource
 //                            ->hidden(fn (Forms\Get $get): bool => !$get('title'))
                             ->disabledOn('edit')
                             ->required()
-                            ->unique()
+                            ->unique(ignoreRecord: true)
                             ->helperText('Generates automatically from the title if left empty'),
 
                         Forms\Components\RichEditor::make('content')->columnSpan(2)->required()
@@ -74,6 +75,10 @@ class CategoryResource extends Resource
                     Forms\Components\Group::make()->schema([
 
                     Forms\Components\Section::make()->schema([
+
+                        Forms\Components\Toggle::make('is_featured')
+                            ->onColor('success')
+                            ->offColor('danger'),
 
                         FileUpload::make('image')
                             ->image()
@@ -89,8 +94,30 @@ class CategoryResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultSort('id', 'desc')
+            ->defaultPaginationPageOption(5)
+            ->extremePaginationLinks()
+            ->striped()
+            ->searchPlaceholder('Search by title & slug')
             ->columns([
-                //
+                Tables\Columns\TextColumn::make('id')->label('ID'),
+                Tables\Columns\ImageColumn::make('image')->toggleable(),
+
+                Tables\Columns\ColumnGroup::make('Title & Slug', [
+                    Tables\Columns\TextColumn::make('title')->sortable()->searchable(),
+                    Tables\Columns\TextColumn::make('slug')
+                        ->sortable()
+                        ->searchable(isIndividual: true)
+                        ->copyable()
+                        ->tooltip('click for copy')->label('Slug (click for copy)')
+                        ->toggleable(),
+                ])->alignment(Alignment::Center),
+
+                Tables\Columns\IconColumn::make('is_featured')->boolean()->sortable(),
+                /*Tables\Columns\ToggleColumn::make('is_featured')
+                    ->afterStateUpdated(function () {
+                        Notification::make()->title('Saved')->success()->send();
+                    }),*/
             ])
             ->filters([
                 //

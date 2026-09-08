@@ -11,5 +11,6 @@ class Category extends Model
         'slug',
         'content',       
         'image',
+        'is_featured',
     ];
 }
