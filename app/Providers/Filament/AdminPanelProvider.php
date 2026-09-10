@@ -34,25 +34,7 @@ class AdminPanelProvider extends PanelProvider
             ->brandLogoHeight('50px')
             ->profile()
             // ->registration()
-            ->navigationGroups([
-                NavigationGroup::make()
-                ->label('Blog')
-                ->collapsed(),
-                NavigationGroup::make()
-                ->label('Links')
-                ->collapsed()
-            ])
-            ->navigationItems([
-                NavigationItem::make('Google')
-                ->url('https://google.com', shouldOpenInNewTab: true)
-                ->icon('heroicon-o-bookmark')
-                ->group('Links'),
-                NavigationItem::make('Youtube')
-                ->url('https://youtube.com', shouldOpenInNewTab: true)
-                ->icon('heroicon-o-bookmark')
-                ->group('Links')
-            ])
-            ->sidebarCollapsibleOnDesktop()
+            // ->sidebarCollapsibleOnDesktop()
             ->colors([
                 'primary' => Color::Amber,
             ])

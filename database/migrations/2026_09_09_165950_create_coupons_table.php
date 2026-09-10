@@ -11,15 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('posts', function (Blueprint $table) {
+        Schema::create('coupons', function (Blueprint $table) {
             $table->id();
+            $table->string('code')->unique();
             $table->string('title');
-            $table->string('slug')->unique();
-            $table->foreignId('category_id')->constrained()->cascadeOnDelete();
-            $table->text('content');
-            $table->string('image')->nullable();
-            $table->boolean('status')->default(true);
-            $table->dateTime('published_at')->useCurrent();
+            $table->unsignedInteger('discount');
+            $table->enum('type', ['fixed', 'percentage'])->default('fixed');
+            $table->date('expired_at')->nullable();
+            $table->unsignedInteger('times')->nullable();
             $table->timestamps();
         });
     }
@@ -29,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('posts');
+        Schema::dropIfExists('coupons');
     }
 };
