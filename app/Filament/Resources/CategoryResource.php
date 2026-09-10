@@ -7,6 +7,7 @@ use App\Filament\Resources\CategoryResource\RelationManagers;
 use App\Models\Category;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Illuminate\Support\Str;
@@ -57,7 +58,7 @@ class CategoryResource extends Resource
 
                         Forms\Components\Select::make('parent_id')
                             ->options(function () {
-                                return self::getCategoriesTree(Category::all());
+                                return Category::getCategoriesTree(Category::all());
                             })
                             ->disableOptionWhen(function (Forms\Get $get, string $value) {
                                 return $value == $get('id');
@@ -88,6 +89,9 @@ class CategoryResource extends Resource
                 Tables\Columns\TextColumn::make('my_id')
                     ->label('#')
                     ->state(function (Tables\Contracts\HasTable $livewire, \stdClass $rowLoop) {
+                        if ($livewire->getTableRecordsPerPage() == 'all') {
+                            return $rowLoop->iteration;
+                        }
                         return $rowLoop->iteration + ($livewire->getTableRecordsPerPage() * ($livewire->getTablePage() - 1));
                     }),
 
@@ -104,7 +108,23 @@ class CategoryResource extends Resource
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\DeleteAction::make()
+                        ->disabled(function ($record) {
+                            return $record->children()->exists() || $record->products()->exists();
+                        })
+                        ->before(function ($record, $action) {
+                            if ($record->children()->exists() || $record->products()->exists()) {
+                                Notification::make()
+                                    ->body('Forbidden!')
+                                    ->danger()
+                                    ->send();
+                                $action->cancel();
+                            }
+                        }),
+                    Tables\Actions\ViewAction::make(),
+                ])
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -129,15 +149,4 @@ class CategoryResource extends Resource
         ];
     }
 
-        public static function getCategoriesTree($categories, $parentId = null, $depth = 0): array
-    {
-        $options = [];
-        foreach ($categories->where('parent_id', $parentId) as $category) {
-            $prefix = str_repeat('- ', $depth);
-            $options[$category->id] = $prefix . $category->title;
-            $children = self::getCategoriesTree($categories, $category->id, $depth + 1);
-            $options += $children;
-        }
-        return $options;
-    }
 }
