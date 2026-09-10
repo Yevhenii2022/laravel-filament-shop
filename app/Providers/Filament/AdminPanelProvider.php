@@ -33,6 +33,7 @@ class AdminPanelProvider extends PanelProvider
             ->brandLogo(asset('logo.svg'))
             ->brandLogoHeight('50px')
             ->profile()
+            ->sidebarCollapsibleOnDesktop(true)
             // ->registration()
             // ->sidebarCollapsibleOnDesktop()
             ->colors([
